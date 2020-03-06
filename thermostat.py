@@ -1,13 +1,20 @@
 import sys
 import time
 
+# sudo apt-get install python3-rpi.gpio
+import RPi.GPIO as GPIO
+
 # sudo apt-get install python3-smbus
 from smbus import SMBus
 
 HT16K33_DISPLAY_OFF = 0x80
 HT16K33_DISPLAY_ON = 0x81
-HT16K33_CMD_BRIGHTNESS = 0xE0
+HT16K33_BRIGHTNESS = 0xE0
 HT16K33_OSCILLATOR_ON = 0x21
+POS = [0, 2, 6, 8]
+
+ROT_A_PIN = 16
+ROT_B_PIN = 18
 
 # Default addresses if you don't mess with address pins.
 THERMOMETER_ADDRESS = 0x18
@@ -24,13 +31,6 @@ NUMBERS = [
     0x07, # 7
     0x7F, # 8
     0x6F, # 9
-    0x77, # a
-    0x7C, # b
-    0x39, # C
-    0x5E, # d
-    0x79, # E
-    0x71, # F
-    0x40, # -
 ]
 
 def get_temp(bus):
@@ -80,16 +80,58 @@ print("%.2f" % f)
 bus.write_i2c_block_data(SEVEN_SEGMENT_ADDRESS, HT16K33_OSCILLATOR_ON, [])
 bus.write_i2c_block_data(SEVEN_SEGMENT_ADDRESS, HT16K33_DISPLAY_ON, [])
 
-POS = [0, 2, 6, 8]
-while True:
-	buf = [0]*9
-	value = int(get_temp(bus)*100)
+def draw_value(value, draw_colon):
 	s = "%04d" % value
+	buf = [0]*9
 	for i in range(4):
 		buf[POS[i]] = NUMBERS[ord(s[i]) - 0x30]
-	buf[POS[1]] |= 0x80
-
+	buf[4] = 0x02 if draw_colon else 0x00
 	bus.write_i2c_block_data(SEVEN_SEGMENT_ADDRESS, 0x00, buf)
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(ROT_A_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(ROT_B_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+old_a = GPIO.input(ROT_A_PIN)
+old_b = GPIO.input(ROT_B_PIN)
+
+rot_value = 70*4
+def cb(channel):
+	global old_a, old_b, rot_value
+
+	a = GPIO.input(ROT_A_PIN)
+	b = GPIO.input(ROT_B_PIN)
+
+	if a != old_a and b != old_b:
+		# Can't tell.
+		return
+
+	if a == old_a and b == old_b:
+		# No change.
+		return
+
+	d = 0
+	if a != old_a:
+		d = -1 if a ^ b else 1
+	else:
+		d = 1 if a ^ b else -1
+
+	rot_value += d
+
+	old_a = a
+	old_b = b
+
+GPIO.add_event_detect(ROT_A_PIN, GPIO.BOTH, callback=cb)
+GPIO.add_event_detect(ROT_B_PIN, GPIO.BOTH, callback=cb)
+
+b = 15
+bus.write_i2c_block_data(SEVEN_SEGMENT_ADDRESS, HT16K33_BRIGHTNESS | b, [])
+
+while True:
+	actual_temp = int(get_temp(bus))
+	set_temp = (rot_value + 2) // 4
+	heater_on = actual_temp < set_temp
+	draw_value(actual_temp*100 + set_temp, heater_on)
 	time.sleep(0.1)
 
 bus.close()

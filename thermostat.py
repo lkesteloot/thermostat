@@ -206,7 +206,6 @@ while True:
 		conn.execute('''INSERT INTO temp (actual_temp, set_temp, heater_on) VALUES (?, ?, ?)''',
 			(actual_temp, set_temp, heater_on))
 		conn.commit()
-		after = time.time()
 		db_write_time = now
 
 	draw_value(int(actual_temp)*100 + set_temp, heater_on)

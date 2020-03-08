@@ -10,6 +10,10 @@ import RPi.GPIO as GPIO
 # sudo apt-get install python3-smbus
 from smbus import SMBus
 
+# sudo apt-get install python3-flask
+from flask import Flask, request
+flask_app = Flask(__name__)
+
 HIST_LEN = 100
 
 MIN_TEMP = 60
@@ -181,6 +185,23 @@ upgrade_schema(conn)
 
 b = 15
 bus.write_i2c_block_data(SEVEN_SEGMENT_ADDRESS, HT16K33_BRIGHTNESS | b, [])
+
+@flask_app.route('/')
+def index():
+    return """
+  <form action='/hello' method='post'>
+    Enter your name: <input type="text" name="name" id="name" required>
+    </br>
+    <input type="submit" value="say hello">
+  </form>
+"""
+
+@flask_app.route('/hello', methods=['POST'])
+def hello():
+    name = request.form.get('name')
+    return "Hello, %s!" % (name)
+
+# flask_app.run(host="0.0.0.0")
 
 db_write_time = time.time()
 

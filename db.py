@@ -3,7 +3,7 @@
 # sudo apt-get install sqlite3
 import sqlite3
 
-conn = None
+import model
 
 # Query helpers.
 
@@ -48,14 +48,31 @@ def upgrade_schema(conn):
     print("There are %d entries in historical table" %
         query_single_value(conn, "SELECT count(*) FROM temp"))
 
-
 def init():
-    global conn
-    conn = sqlite3.connect("data.db")
+    conn = connect()
     upgrade_schema(conn)
+    return conn
 
-def record(actual_temp, set_temp, heater_on):
-    global conn
+def connect():
+    return sqlite3.connect("data.db")
+
+def record(conn, actual_temp, set_temp, heater_on):
     conn.execute('''INSERT INTO temp (actual_temp, set_temp, heater_on) VALUES (?, ?, ?)''',
             (actual_temp, set_temp, heater_on))
     conn.commit()
+
+# -----------------------------------------------------------------------
+
+SAMPLE_FIELDS = "id, actual_temp, set_temp, heater_on, recorded_at"
+
+def row_to_sample(row):
+    return model.Sample(row[0], row[1], row[2], row[3], row[4])
+
+def get_recent_data(conn, count):
+    samples = [row_to_sample(row)
+            for row in conn.execute("SELECT %s FROM temp ORDER BY recorded_at DESC LIMIT %d" % (SAMPLE_FIELDS, count))]
+
+    samples.reverse()
+
+    return samples
+

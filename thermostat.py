@@ -18,7 +18,7 @@ bus = SMBus(1)
 thermometer.init(bus)
 display.init(bus)
 knob.init()
-db.init()
+conn = db.init()
 web.init()
 
 db_write_time = time.time()
@@ -42,7 +42,7 @@ while True:
     now = time.time()
     if now - db_write_time > DB_WRITE_PERIOD:
         before = time.time()
-        db.record(actual_temp, set_temp, heater_on)
+        db.record(conn, actual_temp, set_temp, heater_on)
         db_write_time = now
 
     display.draw_value(bus, int(actual_temp)*100 + set_temp, heater_on)

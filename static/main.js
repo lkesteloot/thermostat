@@ -39,6 +39,9 @@ function plotTemps(samples) {
                     time: {
                         unit: "hour",
                         round: true,
+                        parser: function(date) {
+                            return moment.utc(date).local();
+                        },
                     },
                     ticks: {
                         source: "auto",
@@ -52,10 +55,12 @@ function plotTemps(samples) {
                     },
                     ticks: {
                         beginAtZero: false,
+                        /*
                         callback: function (value, index, values) {
                             // Add commas.
                             return value.toLocaleString();
                         },
+                        */
                     }
                 }]
             }

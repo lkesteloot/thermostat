@@ -6,7 +6,7 @@ import json
 import db
 
 # sudo apt-get install python3-flask
-from flask import Flask, request, g
+from flask import Flask, request, g, current_app
 app = Flask(__name__)
 
 def get_db():
@@ -18,13 +18,7 @@ def get_db():
 
 @app.route('/')
 def index():
-    return """
-  <form action='/hello' method='post'>
-    Enter your name: <input type="text" name="name" id="name" required>
-    </br>
-    <input type="submit" value="say hello">
-  </form>
-"""
+    return current_app.send_static_file("index.html")
 
 @app.route('/hello', methods=['POST'])
 def hello():
@@ -33,7 +27,6 @@ def hello():
 
 @app.route('/api/temp')
 def api_temp():
-    print("Handler thread", threading.current_thread().ident)
     samples = db.get_recent_data(get_db(), 60*24)
     data = {
             "samples": [sample.to_object() for sample in samples],
@@ -48,10 +41,8 @@ def close_connection(exception):
 
 def start():
     global app
-    print("Init thread", threading.current_thread().ident)
     app.run(host="0.0.0.0", debug=True, use_reloader=False)
 
 def init():
-    print("Main thread", threading.current_thread().ident)
     threading.Thread(target=start).start()
 

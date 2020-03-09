@@ -16,18 +16,19 @@ def get_db():
         g._database = conn
     return conn
 
-@app.route('/')
+@app.route("/")
 def index():
     return current_app.send_static_file("index.html")
 
-@app.route('/hello', methods=['POST'])
+@app.route("/hello", methods=["POST"])
 def hello():
-    name = request.form.get('name')
+    name = request.form.get("name")
     return "Hello, %s!" % (name)
 
-@app.route('/api/temp')
+@app.route("/api/temp")
 def api_temp():
-    samples = db.get_recent_data(get_db(), 60*24)
+    count = request.args.get("count", default=60*24, type=int)
+    samples = db.get_recent_data(get_db(), count)
     data = {
             "samples": [sample.to_object() for sample in samples],
     }

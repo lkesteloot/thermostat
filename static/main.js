@@ -1,25 +1,12 @@
 
-function plotTemps(samples) {
+var g_chart = null;
+
+function createChart(series) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
     const charts = document.getElementById("charts");
     charts.appendChild(canvas);
-
-    const series = [
-        {
-            data: samples.map(sample => ({
-                "t": sample.recorded_at,
-                "y": sample.actual_temp,
-            })),
-            label: "Actual",
-            pointRadius: 0,
-            borderColor: "#00C000",
-            fill: false,
-            pointHitRadius: 10,
-            cubicInterpolationMode: "monotone",
-        }
-    ];
 
     const cfg = {
         type: "line",
@@ -67,22 +54,52 @@ function plotTemps(samples) {
         }
     };
 
-    new Chart(ctx, cfg);
+    g_chart = new Chart(ctx, cfg);
 }
 
-fetch("/api/temp")
-    .then(response => {
-        if (response.status !== 200) {
-            console.log("Looks like there was a problem. Status Code: " + response.status);
-            return;
+function plotTemps(samples) {
+    const series = [
+        {
+            data: samples.map(sample => ({
+                "t": sample.recorded_at,
+                "y": sample.actual_temp,
+            })),
+            label: "Actual",
+            pointRadius: 0,
+            borderColor: "#00C000",
+            fill: false,
+            pointHitRadius: 10,
+            cubicInterpolationMode: "monotone",
         }
+    ];
 
-        // Examine the text in the response
-        response.json().then(data => {
-            plotTemps(data.samples);
+    if (g_chart === null) {
+        createChart(series);
+    } else {
+        g_chart.data.datasets = series;
+        g_chart.update(0);
+    }
+}
+
+function fetchData() {
+    fetch("/api/temp?count=1440")
+        .then(response => {
+            if (response.status !== 200) {
+                console.log("Looks like there was a problem. Status Code: " + response.status);
+                return;
+            }
+
+            // Examine the text in the response
+            response.json().then(data => {
+                plotTemps(data.samples);
+            });
+        })
+        .catch(err => {
+            console.log("Fetch Error", err);
         });
-    })
-    .catch(err => {
-        console.log("Fetch Error", err);
-    });
+
+    setTimeout(fetchData, 60*1000);
+}
+
+fetchData();
 

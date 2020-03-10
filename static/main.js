@@ -70,7 +70,31 @@ function plotTemps(samples) {
             fill: false,
             pointHitRadius: 10,
             cubicInterpolationMode: "monotone",
-        }
+        },
+        {
+            data: samples.map(sample => ({
+                "t": sample.recorded_at,
+                "y": sample.outside_temp,
+            })),
+            label: "Outside",
+            pointRadius: 0,
+            borderColor: "#0000C0",
+            fill: false,
+            pointHitRadius: 10,
+            cubicInterpolationMode: "monotone",
+        },
+        {
+            data: samples.map(sample => ({
+                "t": sample.recorded_at,
+                "y": sample.set_temp,
+            })),
+            label: "Set",
+            pointRadius: 0,
+            borderColor: "#C00000",
+            fill: false,
+            pointHitRadius: 10,
+            cubicInterpolationMode: "monotone",
+        },
     ];
 
     if (g_chart === null) {

@@ -8,6 +8,7 @@ import web
 import thermometer
 import display
 import knob
+import weather
 
 HIST_LEN = 100
 DB_WRITE_PERIOD = 60
@@ -42,7 +43,8 @@ while True:
     now = time.time()
     if now - db_write_time > DB_WRITE_PERIOD:
         before = time.time()
-        db.record(conn, actual_temp, set_temp, heater_on)
+        outside_temp = weather.get_outside_temperature()
+        db.record(conn, actual_temp, set_temp, heater_on, outside_temp)
         db_write_time = now
 
     display.draw_value(bus, int(actual_temp)*100 + set_temp, heater_on)

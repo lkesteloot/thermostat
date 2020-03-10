@@ -27,8 +27,13 @@ def db_upgrade0(conn):
         recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )''')
 
+def db_upgrade1(conn):
+    conn.execute('''ALTER TABLE temp RENAME TO sample''')
+    conn.execute('''ALTER TABLE sample ADD COLUMN outside_temp REAL''')
+
 UPGRADES = [
     db_upgrade0,
+    db_upgrade1,
 ]
 
 def upgrade_schema(conn):
@@ -46,7 +51,7 @@ def upgrade_schema(conn):
     conn.commit()
 
     print("There are %d entries in historical table" %
-        query_single_value(conn, "SELECT count(*) FROM temp"))
+        query_single_value(conn, "SELECT count(*) FROM sample"))
 
 def init():
     conn = connect()
@@ -56,21 +61,21 @@ def init():
 def connect():
     return sqlite3.connect("data.db")
 
-def record(conn, actual_temp, set_temp, heater_on):
-    conn.execute('''INSERT INTO temp (actual_temp, set_temp, heater_on) VALUES (?, ?, ?)''',
-            (actual_temp, set_temp, heater_on))
+def record(conn, actual_temp, set_temp, heater_on, outside_temp):
+    conn.execute('''INSERT INTO sample (actual_temp, set_temp, heater_on, outside_temp) VALUES (?, ?, ?, ?)''',
+            (actual_temp, set_temp, heater_on, outside_temp))
     conn.commit()
 
 # -----------------------------------------------------------------------
 
-SAMPLE_FIELDS = "id, actual_temp, set_temp, heater_on, recorded_at"
+SAMPLE_FIELDS = "id, actual_temp, set_temp, heater_on, outside_temp, recorded_at"
 
 def row_to_sample(row):
-    return model.Sample(row[0], row[1], row[2], row[3], row[4])
+    return model.Sample(row[0], row[1], row[2], row[3], row[4], row[5])
 
 def get_recent_data(conn, count):
     samples = [row_to_sample(row)
-            for row in conn.execute("SELECT %s FROM temp ORDER BY recorded_at DESC LIMIT %d" % (SAMPLE_FIELDS, count))]
+            for row in conn.execute("SELECT %s FROM sample ORDER BY recorded_at DESC LIMIT %d" % (SAMPLE_FIELDS, count))]
 
     samples.reverse()
 

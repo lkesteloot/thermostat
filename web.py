@@ -20,11 +20,6 @@ def get_db():
 def index():
     return current_app.send_static_file("index.html")
 
-@app.route("/hello", methods=["POST"])
-def hello():
-    name = request.form.get("name")
-    return "Hello, %s!" % (name)
-
 @app.route("/api/temp")
 def api_temp():
     count = request.args.get("count", default=60*24, type=int)

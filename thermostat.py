@@ -22,7 +22,7 @@ knob.init()
 conn = db.init()
 web.init()
 
-db_write_time = time.time()
+db_write_time = 0
 
 hist = []
 while True:

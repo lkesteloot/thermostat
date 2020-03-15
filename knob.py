@@ -3,6 +3,7 @@
 # sudo apt-get install python3-rpi.gpio
 import RPi.GPIO as GPIO
 
+# Assumes GPIO.BOARD.
 ROT_A_PIN = 16
 ROT_B_PIN = 18
 
@@ -40,7 +41,6 @@ def cb(channel):
 def init():
     global old_a, old_b
 
-    GPIO.setmode(GPIO.BOARD)
     GPIO.setup(ROT_A_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(ROT_B_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(ROT_A_PIN, GPIO.BOTH, callback=cb)

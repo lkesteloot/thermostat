@@ -47,7 +47,9 @@ try:
         set_temp = knob.get_value()
 
         # Whether heater is on.
-        heater_on = actual_temp < set_temp
+        heater_on = True if int(actual_temp) < int(set_temp) \
+                else False if int(actual_temp) > int(set_temp) \
+                else heater_on
 
         # Update relay.
         if heater_on != last_heater_on:

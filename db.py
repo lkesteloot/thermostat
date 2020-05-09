@@ -73,9 +73,17 @@ SAMPLE_FIELDS = "id, actual_temp, set_temp, heater_on, outside_temp, recorded_at
 def row_to_sample(row):
     return model.Sample(row[0], row[1], row[2], row[3], row[4], row[5])
 
-def get_recent_data(conn, count):
-    samples = [row_to_sample(row)
-            for row in conn.execute("SELECT %s FROM sample ORDER BY recorded_at DESC LIMIT %d" % (SAMPLE_FIELDS, count))]
+# If count is specified, will limit to that many entries. If minutes is specified,
+# will limit to that many minutes in the past.
+def get_recent_data(conn, count, minutes):
+    sql = "SELECT %s FROM sample " % (SAMPLE_FIELDS,)
+    if minutes is not None:
+        sql += "WHERE recorded_at > datetime('now', '-%d minutes') " % (minutes,)
+    sql += "ORDER BY recorded_at DESC "
+    if count is not None:
+        sql += "LIMIT %d " % (count,)
+
+    samples = [row_to_sample(row) for row in conn.execute(sql)]
 
     samples.reverse()
 

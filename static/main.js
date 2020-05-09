@@ -71,6 +71,7 @@ function plotTemps(samples) {
             pointHitRadius: 10,
             cubicInterpolationMode: "monotone",
         },
+        /*
         {
             data: samples.map(sample => ({
                 "t": sample.recorded_at,
@@ -95,6 +96,7 @@ function plotTemps(samples) {
             pointHitRadius: 10,
             cubicInterpolationMode: "monotone",
         },
+        */
     ];
 
     if (g_chart === null) {
@@ -106,7 +108,7 @@ function plotTemps(samples) {
 }
 
 function fetchData() {
-    fetch("/api/temp?count=1440")
+    fetch("/api/temp?minutes=1440")
         .then(response => {
             if (response.status !== 200) {
                 console.log("Looks like there was a problem. Status Code: " + response.status);

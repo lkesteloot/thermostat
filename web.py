@@ -22,8 +22,9 @@ def index():
 
 @app.route("/api/temp")
 def api_temp():
-    count = request.args.get("count", default=60*24, type=int)
-    samples = db.get_recent_data(get_db(), count)
+    count = request.args.get("count", default=None, type=int)
+    minutes = request.args.get("minutes", default=None, type=int)
+    samples = db.get_recent_data(get_db(), count, minutes)
     data = {
             "samples": [sample.to_object() for sample in samples],
     }

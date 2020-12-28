@@ -111,18 +111,13 @@ function fetchData() {
     fetch("/api/temp?minutes=1440")
         .then(response => {
             if (response.status !== 200) {
-                console.log("Looks like there was a problem. Status Code: " + response.status);
-                return;
+                throw new Error("Status Code: " + response.status);
+            } else {
+                return response.json();
             }
-
-            // Examine the text in the response
-            response.json().then(data => {
-                plotTemps(data.samples);
-            });
         })
-        .catch(err => {
-            console.log("Fetch Error", err);
-        });
+        .then(data => plotTemps(data.samples))
+        .catch(err => console.error("Fetch Error", err));
 
     setTimeout(fetchData, 60*1000);
 }

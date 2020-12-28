@@ -15,5 +15,4 @@ Uses [DarkSky](https://darksky.net/) for current outside temperature.
 
 # License
 
-[MIT](LICENSE)
-
+Copyright &copy; Lawrence Kesteloot, [MIT license](LICENSE).

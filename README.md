@@ -10,6 +10,7 @@ Uses the following components:
 I2C interface.
 * [Adafruit Latching Mini Relay FeatherWing](https://www.adafruit.com/product/2923) to
 control the actual heater.
+* [Buck converter](https://www.amazon.com/gp/product/B00RE6QN4U/) to convert 24 VAC to 5 VDC.
 
 Uses [DarkSky](https://darksky.net/) for current outside temperature.
 

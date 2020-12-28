@@ -49,6 +49,11 @@ def init():
     old_a = GPIO.input(ROT_A_PIN)
     old_b = GPIO.input(ROT_B_PIN)
 
-def get_value():
+def get_temp():
     global rot_value
     return (rot_value + 2) // 4
+
+def set_temp(temp):
+    global rot_value
+    rot_value = temp*4 - 2
+

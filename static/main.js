@@ -71,7 +71,6 @@ function plotTemps(samples) {
             pointHitRadius: 10,
             cubicInterpolationMode: "monotone",
         },
-        /*
         {
             data: samples.map(sample => ({
                 "t": sample.recorded_at,
@@ -96,7 +95,6 @@ function plotTemps(samples) {
             pointHitRadius: 10,
             cubicInterpolationMode: "monotone",
         },
-        */
     ];
 
     if (g_chart === null) {

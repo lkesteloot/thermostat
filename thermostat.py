@@ -1,4 +1,7 @@
 import time
+import sys
+import datetime
+import dateutil.tz
 
 # sudo apt-get install python3-smbus
 from smbus import SMBus
@@ -28,11 +31,17 @@ conn = db.init()
 web.init()
 relay.init()
 
+TIMEZONE = dateutil.tz.gettz('US/Pacific')
+
+def get_is_day():
+    now = datetime.datetime.now(TIMEZONE)
+    return now.hour >= 8 and now.hour < 20
+
+is_day = None
 db_write_time = 0
-
 last_heater_on = None
-
 hist = []
+heater_on = False
 
 try:
     while True:
@@ -44,16 +53,28 @@ try:
         actual_temp = sum(hist) / len(hist)
 
         # Compute set temperature.
-        set_temp = knob.get_value()
+        new_is_day = get_is_day()
+        if new_is_day != is_day:
+            # Changed time block.
+            is_day = new_is_day
+            set_temp = 70 if is_day else 60
+            sys.stderr.write("Automatic set temperature: %d\n" % set_temp)
+            knob.set_temp(set_temp)
+
+        set_temp = knob.get_temp()
 
         # Whether heater is on.
         heater_on = True if int(actual_temp) < int(set_temp) \
                 else False if int(actual_temp) > int(set_temp) \
                 else heater_on
 
+        # For testing or emergencies.
+        # heater_on = False
+
         # Update relay.
         if heater_on != last_heater_on:
             relay.set_relay(heater_on)
+            sys.stderr.write("Heater has turned " + ("on" if heater_on else "off") + "\n")
             last_heater_on = heater_on
 
         # Record settings to the database.
@@ -67,9 +88,13 @@ try:
         display.draw_value(bus, int(actual_temp)*100 + set_temp, heater_on)
         time.sleep(0.1)
 except KeyboardInterrupt:
-    pass
+    print()
 
-print("Cleaning up...")
-bus.close()
-GPIO.cleanup()
+finally:
+    print("Cleaning up i2c...")
+    bus.close()
+    print("Cleaning up GPIO...")
+    GPIO.cleanup()
+    print("Done cleaning up...")
+    sys.exit(0)
 
